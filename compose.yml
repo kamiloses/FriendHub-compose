@@ -1,0 +1,182 @@
+services:
+
+
+  userService:
+    image: kamiloses/friendhub-backend-userservice:latest
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbitmq"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/user-service"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongo
+      - rabbitmq
+      - redis
+    networks:
+      - friendHub_network
+
+  postService:
+    image: kamiloses/friendhub-backend-postservice:latest
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbitmq"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/post-service"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+      - rabbitmq
+      - redis
+    networks:
+      - friendHub_network
+
+  messageService:
+    image: kamiloses/friendhub-backend-messageservice:latest
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbitmq"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/message-service"
+    ports:
+      - "8085:8085"
+    depends_on:
+      - mongo
+      - rabbitmq
+      - redis
+    networks:
+      - friendHub_network
+
+
+  likeService:
+    image: kamiloses/friendhub-backend-likeservice:latest
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbitmq"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/like-service"
+    ports:
+      - "8087:8087"
+    depends_on:
+      - mongo
+      - rabbitmq
+      - redis
+    networks:
+      - friendHub_network
+
+
+
+  friendService:
+    image: kamiloses/friendhub-backend-friendservice:latest
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbitmq"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/friend-service"
+    ports:
+      - "8084:8084"
+    depends_on:
+      - mongo
+      - rabbitmq
+      - redis
+    networks:
+      - friendHub_network
+
+
+
+
+  eurekaServer:
+    image: kamiloses/friendhub-backend-eurekaserver:latest
+    ports:
+      - "8761:8761"
+    networks:
+      - friendHub_network
+
+
+
+  commentService:
+    image: kamiloses/friendhub-backend-commentservice:latest
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbitmq"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/comment-service"
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mongo
+      - rabbitmq
+      - redis
+    networks:
+      - friendHub_network
+
+
+
+  authService:
+    image: kamiloses/friendhub-backend-authservice:latest
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbitmq"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/auth-service"
+    ports:
+      - "7070:7070"
+    depends_on:
+      - mongo
+      - rabbitmq
+      - redis
+    networks:
+      - friendHub_network
+
+
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - friendHub_network
+
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_DATABASE: friendHub
+    ports:
+      - "27017:27017"
+    networks:
+      - friendHub_network
+
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    networks:
+      - friendHub_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./dockerConfig/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    restart: always
+    ports:
+      - '9090:9090'
+    networks:
+      - friendHub_network
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - friendHub_network
+
+
+  frontend:
+    image: kamiloses/friendhub-frontend
+    ports:
+      - "4200:4200"
+    networks:
+      - friendHub_network
+
+networks:
+  friendHub_network:
+    driver: bridge
